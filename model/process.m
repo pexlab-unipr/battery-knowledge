@@ -23,22 +23,60 @@ Data_folder = "../data/HTPFR18650-1100mAh-3.2V_datasheet";
 
 % Load CSV files in a given folder
 filenames = get_filenames(Data_folder, ".csv");
-filenames
 
 % Preprocess CSV files in a single dataset (MAT file)
 data = merge_battery_data(filenames);
-data{1}
 data = preprocess_battery_data(data);
-data{1}
 
 %%
-filenames = [...
-    "data_discharge_0C5.csv", ...
-    "data_discharge_1C.csv", ...
-    "data_discharge_3C.csv", ...
-    "data_discharge_5C.csv", ...
-    "data_discharge_10C.csv"];
-Itest_C = [0.5, 1, 3, 5, 10];
+figure
+subplot(1,3,1)
+hold on
+for ii = 1:numel(data)
+    plot(data{ii}.time, data{ii}.vbat)
+end
+xlabel('Time (s)')
+ylabel('Battery voltage (V)')
+box on
+grid on
+subplot(1,3,2)
+hold on
+for ii = 1:numel(data)
+    plot(data{ii}.time, data{ii}.ibat)
+end
+xlabel('Time (s)')
+ylabel('Battery current (A)')
+box on
+grid on
+subplot(1,3,3)
+hold on
+for ii = 1:numel(data)
+    plot(data{ii}.time, data{ii}.qbat_Ah)
+end
+xlabel('Time (s)')
+ylabel('Battery charge (Ah)')
+box on
+grid on
+
+figure
+hold on
+for ii = 1:numel(data)
+    plot(data{ii}.qbat_Ah, data{ii}.vbat)
+end
+xlabel('Battery charge (Ah)')
+ylabel('Battery voltage (V)')
+box on
+grid on
+
+figure
+hold on
+for ii = 1:numel(data)
+    plot(data{ii}.ibat(1), data{ii}.qbat_Ah(end), 'x')
+end
+xlabel('Battery current (A)')
+ylabel('Battery charge (Ah)')
+box on
+grid on
 
 %% Processing
 Qn = Qn_Ah * 3600;

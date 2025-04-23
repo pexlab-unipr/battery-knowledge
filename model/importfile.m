@@ -23,23 +23,22 @@ if nargin < 2
 end
 
 %% Set up the Import Options and import the data
-opts = delimitedTextImportOptions("NumVariables", 2);
+opts = delimitedTextImportOptions("NumVariables", 3);
 
 % Specify range and delimiter
 opts.DataLines = dataLines;
 opts.Delimiter = ";";
 
 % Specify column names and types
-opts.VariableNames = ["q", "v"];
-opts.VariableTypes = ["double", "double"];
+opts.VariableNames = ["time", "vbat", "ibat"];
+opts.VariableTypes = ["double", "double", "double"];
 
 % Specify file level properties
 opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 
 % Specify variable properties
-opts = setvaropts(opts, ["q", "v"], "DecimalSeparator", ",");
-opts = setvaropts(opts, ["q", "v"], "ThousandsSeparator", ".");
+opts = setvaropts(opts, opts.VariableNames, "DecimalSeparator", ".");
 
 % Import the data
 data = readtable(filename, opts);
