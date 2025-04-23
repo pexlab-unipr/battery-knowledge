@@ -5,7 +5,33 @@ clear
 clc
 close all
 
-%% PARAMETER
+%% Parameters
+
+% Battery
+V_L = 2.0; % minimum cell voltage, must be known from datasheet or chemistry
+Qn_Ah = 1.1; % [Ah] cell nominal capacity, from datasheet
+Data_folder = "../data/HTPFR18650-1100mAh-3.2V_datasheet";
+
+% Standard format of battery data
+%   CSV with 3 fields: time, voltage, current
+%   Column separator: ";"
+%   Decimal separator: "."
+%   "time" in seconds or timestamp
+%   "voltage" and "current" in SI units
+
+%% Processing
+
+% Load CSV files in a given folder
+filenames = get_filenames(Data_folder, ".csv");
+filenames
+
+% Preprocess CSV files in a single dataset (MAT file)
+data = merge_battery_data(filenames);
+data{1}
+data = preprocess_battery_data(data);
+data{1}
+
+%%
 filenames = [...
     "data_discharge_0C5.csv", ...
     "data_discharge_1C.csv", ...
@@ -13,7 +39,6 @@ filenames = [...
     "data_discharge_5C.csv", ...
     "data_discharge_10C.csv"];
 Itest_C = [0.5, 1, 3, 5, 10];
-Qn_Ah = 1.1;
 
 %% Processing
 Qn = Qn_Ah * 3600;
