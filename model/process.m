@@ -26,7 +26,15 @@ filenames = get_filenames(Data_folder, ".csv");
 
 % Preprocess CSV files in a single dataset (MAT file)
 data = merge_battery_data(filenames);
-data = preprocess_battery_data(data);
+[data, meta] = preprocess_battery_data(data, Qn_Ah, V_L);
+
+par.V_oc0 = 3.65;
+par.V_ocL = 2;
+par.V_ocx = 3.55;
+par.sigma_ocx = 0.5;
+par.Rs = 50e-3;
+par.Qn_Ah = 1.1;
+ideal_battery_data(par)
 
 %%
 figure
@@ -70,9 +78,7 @@ grid on
 
 figure
 hold on
-for ii = 1:numel(data)
-    plot(data{ii}.ibat(1), data{ii}.qbat_Ah(end), 'x')
-end
+plot(meta.I_ave, meta.Q_end_Ah, 'x-')
 xlabel('Battery current (A)')
 ylabel('Battery charge (Ah)')
 box on
