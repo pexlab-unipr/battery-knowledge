@@ -1,22 +1,38 @@
-function [qbat_pu, ibat, vbat] = model_from_battery_data(data, meta)
+function [qbat_pu, ibat, vbat, voc] = model_from_battery_data(data, meta)
     % Model battery
     % Assuming each test is done at constant current
 
     % Resample all traces to have gridded points on raw SOC
     Q_pu_supermax = max(meta.Q_pu_max);
-    N_s_max = max(meta.N_s);
-    q_pu = linspace(0, Q_pu_supermax, N_s_max).';
-    N_tests = numel(data);
-    data_mats = zeros(N_s_max, 3, N_tests);
-    for ii = 1:N_tests
-        data_mats(:,1,ii) = q_pu;
-        data_mats(:,2,ii) = meta.I_ave(ii)*ones(size(q_pu));
-        flt = true(size(data{ii}.qbat_pu)); % data{ii}.qbat_pu > 0.2;
-        data_mats(:,3,ii) = interp1(data{ii}.qbat_pu(flt), data{ii}.vbat(flt), q_pu, 'linear', 'extrap');
+    N_q = max(meta.N_s);
+    N_i = numel(data);
+    q_pu = linspace(0, Q_pu_supermax, N_q).';
+    %
+    init0 = zeros(N_q, N_i);
+    qbat_pu = init0;
+    ibat = init0;
+    vbat = init0;
+    vbat_dc = init0;
+    vbat_dyn = init0;
+    voc = zeros(N_q, 1);
+    for ii = 1:N_i
+        qbat_pu(:,ii) = q_pu;
+        ibat(:,ii) = meta.I_ave(ii)*ones(size(q_pu));
+        vbat(:,ii) = interp1(data{ii}.qbat_pu, data{ii}.vbat, q_pu, 'linear', 'extrap');
+        % separate dynamic behavior
+        vbat_dc(:,ii) = vbat(:,ii);
+        flt_dyn = q_pu < 0.2;
+        flt_dc = (q_pu < 0.5) & ~flt_dyn;
+        p = polyfit(q_pu(flt_dc), vbat(flt_dc,ii), 1);
+        vbat_dc(flt_dyn, ii) = polyval(p, q_pu(flt_dyn));
+        vbat_dyn(:,ii) = vbat(:,ii) - vbat_dc(:,ii);
     end
-    qbat_pu = squeeze(data_mats(:, 1, :));
-    ibat = squeeze(data_mats(:, 2, :));
-    vbat = squeeze(data_mats(:, 3, :));
+    %
+    for ii = 1:N_q
+        fo = fit(ibat(ii,:).', vbat(ii,:).', 'power2');
+        voc(ii) = fo.c;
+    end
+    %
     Rs = zeros(size(qbat_pu, 1), 1);
     for ii = 1:numel(Rs)
         p = polyfit(ibat(ii,:), vbat(ii,:), 1);
@@ -39,6 +55,13 @@ function [qbat_pu, ibat, vbat] = model_from_battery_data(data, meta)
     flt = flt & (mod((1:size(qbat_pu, 1)).', 20) == 0);
     figure
     plot(ibat(1,:), vbat(flt,:))
+    
+    figure
+    hold on
+    plot(qbat_pu, vbat, '-')
+    plot(qbat_pu, vbat_dc, '--')
+    plot(qbat_pu(:,1), voc, 'k--')
 
-
+%     figure
+%     plot(qbat_pu, vbat_dyn)
 end

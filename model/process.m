@@ -27,7 +27,9 @@ filenames = get_filenames(Data_folder, ".csv");
 % Preprocess CSV files in a single dataset (MAT file)
 data = merge_battery_data(filenames);
 [data, meta] = preprocess_battery_data(data, Qn_Ah, V_L);
-[qbat_pu, ibat, vbat] = model_from_battery_data(data, meta);
+[qbat_pu, ibat, vbat, voc] = model_from_battery_data(data, meta);
+
+return
 
 asd = fit([qbat_pu(:), ibat(:)], vbat(:), 'linearinterp');
 qq = qbat_pu(:,1);
