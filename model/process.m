@@ -27,7 +27,25 @@ filenames = get_filenames(Data_folder, ".csv");
 % Preprocess CSV files in a single dataset (MAT file)
 data = merge_battery_data(filenames);
 [data, meta] = preprocess_battery_data(data, Qn_Ah, V_L);
+[qbat_pu, ibat, vbat] = model_from_battery_data(data, meta);
 
+figure
+surf(qbat_pu, ibat, vbat)
+xlabel('Normalized charge (1)')
+ylabel('Current (A)')
+zlabel('Voltage (V)')
+
+qq = qbat_pu(:,1);
+iq = linspace(0, max(meta.I_ave), 21);
+vq = interp2(qbat_pu.', ibat.', vbat.', qq.', iq.', 'makima');
+
+figure
+plot(qq, vq)
+
+
+figure
+plot(iq, vq(:,))
+%
 par.V_oc0 = 3.65;
 par.V_ocL = 2;
 par.V_ocx = 3.55;
